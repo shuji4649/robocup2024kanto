@@ -1,14 +1,12 @@
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
-from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
-                                 InfraredSensor, UltrasonicSensor, GyroSensor)
+from pybricks.ev3devices import (Motor, ColorSensor,)
 from pybricks.parameters import Port, Stop, Direction, Button, Color
-from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 from pybricks.iodevices import UARTDevice
 import time
-
+import linetrace
 
 
 
@@ -151,6 +149,8 @@ def pid_run():
     a_motor.run(speed-5*(P+I+D))
     d_motor.run(speed+5*(P+I+D))
     #robot.drive(runspeed, (P+I+D))
+
+line=linetrace.LineTrace()
 
 
 def check_green():
@@ -503,9 +503,12 @@ robot.stop()
 
 while True:
 
-    get_sensors()
-
-    pid_run() 
+    #get_sensors()
+    
+    line.pid_run()
+    if line.checkRed():
+        robot.stop()
+    continue
     check_green() 
     if checkRed(): break
     if ObjectEscape(): continue 
