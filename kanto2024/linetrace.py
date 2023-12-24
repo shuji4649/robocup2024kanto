@@ -14,17 +14,18 @@ SPEED=100
 
 class LineTrace():
     
-
-    def __init__(self):
-
+    def __init__(self,a_motor,d_motor,cs_r,cs_l):
+        
         self.dif0=0
         self.dif1=0
         self.difSum=0
-        self.a_motor,self.d_motor = Motor(Port.A),Motor(Port.D) 
-        self.cs_r,self.cs_l = ColorSensor(Port.S2),ColorSensor(Port.S3)
+        self.a_motor,self.d_motor = a_motor,d_motor 
+        self.cs_r,self.cs_l = cs_r,cs_l
         self.isRedOnce=False
 
     def pid_run(self):
+        """PIDライントレースをします
+        """        
         self.dif1=self.dif0
         self.dif0 = sum(self.cs_r.rgb()) - sum(self.cs_l.rgb())*0.78  # 0.78 は補正値 
         self.difSum += self.dif0
@@ -41,16 +42,15 @@ class LineTrace():
         Returns:
             bool : 赤ならTrueを返します
         """
-        global isRedOnce
         if self.cs_r.color() == Color.RED:
-            if isRedOnce:  
+            if self.isRedOnce:  
                 self.a_motor.stop()
                 self.d_motor.stop()
                 return True
             else:
-                isRedOnce=True
+                self.isRedOnce=True
                 return False
         else:
-            isRedOnce=False
+            self.isRedOnce=False
             return False
 
