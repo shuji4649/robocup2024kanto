@@ -7,7 +7,7 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 from pybricks.iodevices import UARTDevice
 import time
 from linetrace import LineTrace
-from ard_uart import ard_sensors
+import ard_uart
 from music import music
 from rescue import rescue
 
@@ -21,7 +21,7 @@ d_motor.reset_angle(0)
 # drivebaseを設定　機体を変えるならここを再設定
 robot = DriveBase(d_motor, a_motor, 35, 240)
 
-myard=ard_sensors()
+
 line=LineTrace(a_motor,d_motor,cs_r,cs_l)
 rc=rescue(a_motor,d_motor,rescue_arm,robot)
 
@@ -31,7 +31,7 @@ def main():
     robot.stop()
 
     while True:
-        myard.get_sensors()
+        ard_uart.get_sensors()
         
         line.pid_run()
         if line.checkRed():

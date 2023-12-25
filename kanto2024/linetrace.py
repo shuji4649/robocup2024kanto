@@ -11,6 +11,34 @@ P_GAIN=4
 I_GAIN=0.001
 D_GAIN=0
 SPEED=100
+a_motor,d_motor = Motor(Port.A),Motor(Port.D)  # 移動用モーター
+rescue_arm=Motor(Port.C)
+cs_r,cs_l = ColorSensor(Port.S2),ColorSensor(Port.S3)  # 左のColorSensor
+dif0=dif1=difSum=0
+isRedOnce=False
+def initialize():
+    P_GAIN=4
+    I_GAIN=0.001
+    D_GAIN=0
+    SPEED=100
+    a_motor,d_motor = Motor(Port.A),Motor(Port.D)  # 移動用モーター
+    rescue_arm=Motor(Port.C)
+    cs_r,cs_l = ColorSensor(Port.S2),ColorSensor(Port.S3)  # 左のColorSensor
+    dif0=dif1=difSum=0
+    isRedOnce=False
+
+def pid_run():
+    """PIDライントレースをします
+    """        
+    dif1=dif0
+    dif0 = sum(cs_r.rgb()) - sum(cs_l.rgb())*0.78  # 0.78 は補正値 
+    difSum += dif0
+    P = dif0*P_GAIN
+    I = difSum*I_GAIN 
+    D = (dif0-dif1)*D_GAIN 
+    speed=SPEED
+    a_motor.run(speed-(P+I+D))
+    d_motor.run(speed+(P+I+D))
 
 class LineTrace():
     
