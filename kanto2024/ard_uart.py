@@ -32,26 +32,29 @@ def get_sensors():
     for i in range(4):  touch_sensor[i]=(touch >> i) & 1 #ビットで割り当てていくぅ
 
     photo_threshould=250 #フォトリフレクタの黒か白かの閾値
-    for i in range(3):
-        date_int=get_int_date()
-        line_photo[i]=( date_int > photo_threshould )
+    # for i in range(3):
+    #     date_int=get_int_date()
+    #     line_photo[i]=( date_int > photo_threshould )
 
-    # フォトリフレクタ・レスキュー
+    # # フォトリフレクタ・レスキュー
+    photo_rescue_threshould=180
     date_int=get_int_date()
-    rescue_photo=( date_int > photo_threshould )
+    print(date_int)
+    rescue_photo=( date_int < photo_rescue_threshould )
 
-    # 超音波センサ
-    ultrasonic = get_int_date()  # 超音波センサー右の通信データ
+    # # 超音波センサ
+    # ultrasonic = get_int_date()  # 超音波センサー右の通信データ
 
     # ボール検知フォトトランジスタ
-    photo_ball_threshould=200 #ボール検知の閾値
+    photo_ball_threshould=240 #ボール検知の閾値
     date_int=get_int_date()
-    photo_ball=(date_int<photo_ball_threshould)
+
+    photo_ball=(date_int>photo_ball_threshould)
 
     date_int=get_int_date()  # ボール判別導電性センサ
     check_ball=(date_int==1)
     
-    date10 = ard.read(1)  # I2Cカラーセンサ
+    #date10 = ard.read(1)  # I2Cカラーセンサ
     ard.clear()
 
 def get_int_date():
@@ -60,3 +63,15 @@ def get_int_date():
         int: arduinoから受け取ったデータ
     """
     return int.from_bytes(ard.read(1),"big")
+#アーム開閉 0:閉じる 1:右を開ける 2: 左を開ける 3:両方開ける
+def OpenArms(num):
+    """アームを開閉します。
+        Arduinoに指示を送ります。
+        開閉の時間分待つ分までここに含まれます。
+    Args:
+        num (int): 指示コード 1:両方開く 2:両方閉じる 3: 右だけ開く 4:右だけ閉める
+    """    
+    ard.write(num.to_bytes(1, "big"))
+    time.sleep(0.4)
+    print("yeah")
+

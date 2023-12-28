@@ -14,9 +14,10 @@ class rescue:
     Returns:
         _type_: _description_
     """    
-    rescue_arm = Motor(Port.C)
-    a_motor=Motor(Port.A)
-    d_motor=Motor(Port.D)
+    # rescue_arm = Motor(Port.C)
+    # d_motor=Motor(Port.D)
+    # a_motor=Motor(Port.A)
+
 
     def __init__(self,a_motor,d_motor,rescue_arm,robot) :
         """rescueクラスの初期化
@@ -33,14 +34,14 @@ class rescue:
 
         
     @classmethod
-    def UpRescueArm():
+    def UpRescueArm(cls):
         """ アームを上げる
         """
         rescue.rescue_arm.run(1000)
         time.sleep(1.5)
-        rescue.rescue_arm.stop()
+        #rescue.rescue_arm.stop()
     @classmethod
-    def DownRescueArm():
+    def DownRescueArm(cls):
         """ アームを下げる
         """
         rescue.rescue_arm.run(-1000)
@@ -48,20 +49,20 @@ class rescue:
         rescue.rescue_arm.stop()
 
     #レスキューキットを回収
-    def PickUpRescueKit():
-        if ard_uart.ard_sensors.rescue_photo:
-            robot.straight(-30)
+    @classmethod
+    def PickUpRescueKit(cls):
+        if ard_uart.rescue_photo:
+            rescue.robot.stop()
+            rescue.robot.straight(-120)
             rescue.DownRescueArm()
-            robot.drive(0,speed)
-            while True:
-                get_sensors()
-                if photo_ball:
-                    break
-            robot.stop()
-            OpenArms(2)
+            ard_uart.OpenArms(2)
+            time.sleep(0.4)
             rescue.UpRescueArm()
-            OpenArms(3)
-            
+            ard_uart.OpenArms(3)
+            time.sleep(0.4)
+            ard_uart.OpenArms(1)
+            rescue.robot.drive(100,0)
+
 
         
 

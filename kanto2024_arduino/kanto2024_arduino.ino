@@ -6,7 +6,7 @@ const int touch[4] = {12, 11, 4, 5}; // マクロスイッチ　右、左、ア�
 const int line_photo[3] = {A1, A3, A2}; // ライントレース用のフォトリフレクタ 中央、右、左
 const int photo_rescue = A7;
 
-const int photo_ball = A3;
+const int photo_ball = A0;
 const int check_ball = 8;
 const int arm_servo_R = 10;
 const int arm_servo_L = 9;
@@ -14,6 +14,22 @@ const int back_servo = 6;
 const int stop_btn = 4;
 const int echoPin = 2;
 const int trigPin = 3;
+
+#include <Servo.h>  //サーボのためのライブラリ
+Servo right;
+Servo left;
+void OpenRight() {
+  right.write(70);
+}
+void CloseRight() {
+  right.write(120);
+}
+void OpenLeft() {
+  left.write(120);
+}
+void CloseLeft() {
+  left.write(65);
+}
 
 int my_pow(int num)
 {
@@ -24,11 +40,12 @@ int my_pow(int num)
   }
   return date;
 }
+
 float Duration = 0;
 float Distance = 0;
 int GetUltrasonic()
 {
-  
+
   pinMode(echoPin, INPUT);
   pinMode(trigPin, OUTPUT);
 
@@ -73,7 +90,7 @@ int getCheckBall()
 
 int GetPhoto(int num)
 {
-  int val = analogRead(A3);
+  int val = analogRead(num);
   return val;
 }
 
@@ -93,46 +110,70 @@ void setup()
   }
 
   pinMode(check_ball, INPUT_PULLUP);
-
+    right.attach(10);
+  left.attach(9);
+  CloseRight();
+  CloseLeft();
+  delay(500);
+  OpenRight();
+  OpenLeft();
 }
 
 void forDebug()
 {
 
-  // Serial.println(GetTouch());
+  //Serial.println(GetTouch());
   //  for (int i = 0; i < 3; i++)
   //  {
   //    Serial.println(GetPhoto(line_photo[i]));
   //  }
 
-  Serial.println(GetPhoto(photo_rescue));
+   Serial.println(GetPhoto(photo_rescue));
 
-  //Serial.println(GetUltrasonic());
+  // Serial.println(GetUltrasonic());
 
-  // Serial.println(GetPhoto(photo_ball));
-  // Serial.println(getCheckBall());
-  return;
-  Serial.println(GetColor());
+  //Serial.println(GetPhoto(photo_ball));
+  //Serial.println(getCheckBall());
+
+  // Serial.println(GetColor());
 }
 
 void loop()
 {
-  forDebug();
-  return;
+  //forDebug();
+  // アーム開閉信号受信
+  if(Serial1.available()){
+    int key = Serial1.read();  
+    Serial.println(key);
+    switch(key){
+      case 1:
+        OpenRight();
+        OpenLeft();
+        break;
+      case 2:
+        CloseRight();
+        CloseLeft();
+        Serial.println("nida");
+        break;
+      case 3:
+        OpenRight();
+        Serial.println("sanda");
+        break;
+      case 4:
+        OpenLeft();
+        break;
+    }
+  }
+  // 信号　1.255 2.タッチセンサ 3.レスキューキット 4.超音波 5.ボール検知フォト 6.伝導性 7.カラーセンサ
   Serial1.write(255);
 
   Serial1.write(GetTouch());
 
-  for (int i = 0; i < 3; i++)
-  {
-    Serial1.write(GetPhoto(line_photo[i]));
-  }
-
   Serial1.write(GetPhoto(photo_rescue));
 
-  Serial1.write(GetUltrasonic());
+  // Serial1.write(GetUltrasonic());
 
   Serial1.write(GetPhoto(photo_ball));
   Serial1.write(getCheckBall());
-  Serial1.write(GetColor());
+  //Serial1.write(GetColor());
 }

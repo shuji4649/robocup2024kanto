@@ -3,7 +3,7 @@ from pybricks.hubs import EV3Brick
 class music:
     def __init__(self):
        self.ev3 = EV3Brick()
-       self.ev3.speaker.set_volume(100)
+       self.ev3.speaker.set_volume(10)
        
     
     def PlayMusic(self,s,haku=500):

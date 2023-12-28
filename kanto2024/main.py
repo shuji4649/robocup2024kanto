@@ -18,28 +18,51 @@ rescue_arm=Motor(Port.C)
 cs_r,cs_l = ColorSensor(Port.S2),ColorSensor(Port.S3)  # 左のColorSensor
 a_motor.reset_angle(0)
 d_motor.reset_angle(0)
+
 # drivebaseを設定　機体を変えるならここを再設定
 robot = DriveBase(d_motor, a_motor, 35, 240)
-
-
-line=LineTrace(a_motor,d_motor,cs_r,cs_l)
+line=LineTrace(a_motor,d_motor,cs_r,cs_l,robot)
 rc=rescue(a_motor,d_motor,rescue_arm,robot)
+ev3_music=music()
+print(a_motor)
+
 
 def main():
+
+
     ev3.speaker.beep()
     #レスキューのアームを上にあげる
     robot.stop()
 
     while True:
-        ard_uart.get_sensors()
-        
+
+        #ard_uart.get_sensors()
+
+        # if ard_uart.photo_ball:
+        #     ard_uart.OpenArms(2)
+        #     time.sleep(0.4)
+        #     robot.stop()
+        #     UpRescueArm()
+        #     ard_uart.OpenArms(4)
+        #     time.sleep(0.4)
+        #     ard_uart.OpenArms(1)
+        #     time.sleep(0.6)
+        #     DownRescueArm()
+        #     robot.drive(100,0)
+
+
         line.pid_run()
+
+        # rescue.PickUpRescueKit()
+        
         if line.checkRed():
             robot.stop()
-
+            break
         check_green() 
-        if line.checkRed(): break
+        continue
         if ObjectEscape(): continue 
+
+        continue
         if isEnterRescue():
             ev3.speaker.beep(440)
 
@@ -49,7 +72,7 @@ def main():
             Rescue()
             continue
 
-        PickUpRescueKit()
+
 
 
 def isGreen(rgb):
@@ -89,7 +112,7 @@ def isEnterRescue():
 
 
 
-
+speed=100
 def check_green():
     """ 緑マーカー検知
     """
@@ -143,13 +166,14 @@ def check_green():
                 #robot.straight(40*chosei)
                 robot.drive(speed, 0)
                 time.sleep(1.0)
-                robot.turn(-80)
+                robot.turn(-75)
                 #robot.straight(25*chosei)
                 robot.drive(speed, 0)
-                time.sleep(0.8)
+                time.sleep(0.2)
         dif0 = 0
         dif1 = 0
         difSum = 0
+        robot.stop()
 
     if isGreen(cs_l.rgb()):
         robot.stop()
@@ -188,20 +212,59 @@ def check_green():
 
             else:
                 # 白なら右に曲がる
-                ev3.speaker.beep(391)
-                robot.stop()
-                turnLeft()
-                # #robot.straight(40*chosei)
-                # robot.drive(speed, 0)
-                # time.sleep(1.0)
-                # robot.turn(80)
-                # #robot.straight(40*chosei)
-                # robot.drive(speed, 0)
-                # time.sleep(0.8)
+
+                #robot.straight(40*chosei)
+                robot.drive(speed, 0)
+                time.sleep(1.0)
+                robot.turn(75)
+                #robot.straight(40*chosei)
+                robot.drive(speed, 0)
+                time.sleep(0.8)
+
+
+        
         dif0 = 0
         dif1 = 0
         difSum = 0
 
+isObject_R=False
+def ObjectEscape():
+    if isObject_R:  # 障害物右回避中の時
+        if (cs_r.color() == Color.BLACK or cs_l.color() == Color.BLACK):
+            robot.stop()
+            ev3.speaker.beep(523)
+            time.sleep(0.2)
+            robot.straight(-150,0) # 後ろへ
+            time.sleep(1.6)
+            robot.stop()
+            robot.turn(-20)
+
+            time.sleep(0.5)
+            robot.stop()
+
+            a_motor.run(400)
+            d_motor.run(180)
+            time.sleep(2.8)
+            a_motor.stop()
+            d_motor.stop()
+            
+            
+            ev3.speaker.beep(240)
+            isObject_R = False
+        else:
+            if ard_uart.touch_sensor[1]:
+                robot.drive(speed, 0)
+            else:
+                robot.drive(speed,60)
+        return True
+
+    if ard_uart.touch_sensor[0] or ard_uart.touch_sensor[1]:
+        ev3.speaker.beep()
+        robot.straight(-20)  # 下がって
+        robot.turn(-70)  # 右折
+        robot.straight(20) 
+        isObject_R=True
+        return True
 
 #障害物回避
 isObject_first_L = isObject_first_R=False #左右それぞれの回避のはじめにぶつかるまで
@@ -261,7 +324,7 @@ def ObjectEscape():
             else:
                 robot.drive(speed,60)
         return True
-
+    return False
     # if isObject_L:  # 障害物右回避中の時
     #     if (cs_r.color() == Color.BLACK or cs_l.color() == Color.BLACK):
     #         robot.stop()
@@ -313,18 +376,22 @@ def ObjectEscape():
 
 
 
+def UpRescueArm():
+    """ アームを上げる
+    """
+    rescue_arm.run(1000)
+    time.sleep(1.5)
+    #rescue_arm.stop()
+
+def DownRescueArm():
+    """ アームを下げる
+    """
+    rescue_arm.run(-1000)
+    time.sleep(1.5)
+    rescue_arm.stop()
 
 
-#アーム開閉 0:閉じる 1:右を開ける 2: 左を開ける 3:両方開ける
-def OpenArms(num):
-    """アームを開閉します。
-        Arduinoに指示を送ります。
-        開閉の時間分待つ分までここに含まれます。
-    Args:
-        num (int): 指示コード 1:両方開く 2:両方閉じる 3: 右だけ開く 4:右だけ閉める
-    """    
-    ard.write(num.to_bytes(1, 'big'))
-    time.sleep(0.4)
+
 
 
 
