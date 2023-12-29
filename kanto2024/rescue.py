@@ -37,32 +37,34 @@ class rescue:
     def UpRescueArm(cls):
         """ アームを上げる
         """
-        rescue.rescue_arm.run(1000)
+        rescue.rescue_arm.run(1600)
         time.sleep(1.5)
         #rescue.rescue_arm.stop()
     @classmethod
     def DownRescueArm(cls):
         """ アームを下げる
         """
-        rescue.rescue_arm.run(-1000)
-        time.sleep(1.5)
+        rescue.rescue_arm.run(-500)
+        time.sleep(2.0)
         rescue.rescue_arm.stop()
 
     #レスキューキットを回収
     @classmethod
     def PickUpRescueKit(cls):
         if ard_uart.rescue_photo:
-            rescue.robot.stop()
-            rescue.robot.straight(-120)
+            ard_uart.get_sensors()
+            rescue.robot.straight(-130)
             rescue.DownRescueArm()
+            rescue.robot.straight(30)
             ard_uart.OpenArms(2)
             time.sleep(0.4)
+
             rescue.UpRescueArm()
             ard_uart.OpenArms(3)
             time.sleep(0.4)
             ard_uart.OpenArms(1)
-            rescue.robot.drive(100,0)
-
+            rescue.robot.straight(100)
+            rescue.robot.stop()
 
         
 

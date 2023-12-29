@@ -6,11 +6,16 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 from pybricks.iodevices import UARTDevice
 import time
+
 from linetrace import LineTrace
+
 import ard_uart
+
 from music import music
+
 from rescue import rescue
 
+import threading
 ev3 = EV3Brick()
 # モータ・センサ設定
 a_motor,d_motor = Motor(Port.A),Motor(Port.D)  # 移動用モーター
@@ -28,15 +33,16 @@ print(a_motor)
 
 
 def main():
-
-
+    print("nahnaha")
     ev3.speaker.beep()
     #レスキューのアームを上にあげる
+    rescue.UpRescueArm()
     robot.stop()
+
 
     while True:
 
-        #ard_uart.get_sensors()
+        ard_uart.get_sensors()
 
         # if ard_uart.photo_ball:
         #     ard_uart.OpenArms(2)
@@ -49,18 +55,18 @@ def main():
         #     time.sleep(0.6)
         #     DownRescueArm()
         #     robot.drive(100,0)
-
-
+        if ObjectEscape(): continue 
+                             
         line.pid_run()
 
-        # rescue.PickUpRescueKit()
+        rescue.PickUpRescueKit()
         
         if line.checkRed():
             robot.stop()
             break
-        check_green() 
-        continue
-        if ObjectEscape(): continue 
+        line.checkGreen() 
+
+
 
         continue
         if isEnterRescue():
@@ -229,22 +235,26 @@ def check_green():
 
 isObject_R=False
 def ObjectEscape():
+    global isObject_R
     if isObject_R:  # 障害物右回避中の時
         if (cs_r.color() == Color.BLACK or cs_l.color() == Color.BLACK):
+            a_motor.stop()
+            d_motor.stop()
             robot.stop()
             ev3.speaker.beep(523)
             time.sleep(0.2)
-            robot.straight(-150,0) # 後ろへ
-            time.sleep(1.6)
+            robot.straight(-80) # 後ろへ
+
             robot.stop()
             robot.turn(-20)
-
-            time.sleep(0.5)
+            robot.drive(100,0)
+            while sum(cs_l.rgb())>100 and sum(cs_r.rgb())>100:
+                hoge=1
             robot.stop()
-
-            a_motor.run(400)
-            d_motor.run(180)
-            time.sleep(2.8)
+            a_motor.run(200)
+            d_motor.run(-200)
+            while sum(cs_l.rgb())<100 or sum(cs_r.rgb())<100 or abs(sum(cs_l.rgb())-sum(cs_r.rgb()))>15:
+                hoge=1
             a_motor.stop()
             d_motor.stop()
             
@@ -253,126 +263,21 @@ def ObjectEscape():
             isObject_R = False
         else:
             if ard_uart.touch_sensor[1]:
-                robot.drive(speed, 0)
+                a_motor.run(200)
+                d_motor.run(200)
             else:
-                robot.drive(speed,60)
+                a_motor.run(-300)
+                d_motor.run(300)
         return True
 
     if ard_uart.touch_sensor[0] or ard_uart.touch_sensor[1]:
         ev3.speaker.beep()
-        robot.straight(-20)  # 下がって
-        robot.turn(-70)  # 右折
-        robot.straight(20) 
+        robot.straight(-50)  # 下がって
+        robot.turn(-60)  # 右折
+        robot.straight(60) 
+        robot.stop()
         isObject_R=True
         return True
-
-#障害物回避
-isObject_first_L = isObject_first_R=False #左右それぞれの回避のはじめにぶつかるまで
-isObject_L = isObject_R = False  # どっち側で障害物回避中？
-def ObjectEscape():
-    global touch_L,touch_R,isObject_first_L,isObject_first_R,isObject_L,isObject_R
-    if isObject_first_R:
-        if touch_L:
-            ev3.speaker.beep(587)
-            isObject_R=True
-            isObject_first_R=False
-        else:
-            robot.drive(speed,0)
-            time.sleep(0.1)
-            robot.drive(speed,60)
-            time.sleep(0.2)
-        return True
-    # if isObject_first_L:
-    #     if touch_R:
-    #         ev3.speaker.beep(587)
-    #         isObject_L=True
-    #         isObject_first_L=False
-    #     else:
-    #         robot.drive(speed,0)
-    #         time.sleep(0.1)
-    #         robot.drive(speed,-60)
-    #         time.sleep(0.2)
-    #     return True 
-  
-
-    if isObject_R:  # 障害物右回避中の時
-        if (cs_r.color() == Color.BLACK or cs_l.color() == Color.BLACK):
-            robot.stop()
-            ev3.speaker.beep(523)
-            time.sleep(0.2)
-            robot.drive(-speed, 0)  # 後ろへ
-            time.sleep(1.6)
-            robot.stop()
-            robot.turn(-20)
-
-            time.sleep(0.5)
-            robot.stop()
-
-            a_motor.run(400)
-            d_motor.run(180)
-            time.sleep(2.8)
-            a_motor.stop()
-            d_motor.stop()
-            
-
-            #robot.turn(-90)  # 右に曲がる
-            ev3.speaker.beep(240)
-            isObject_R = False
-        else:
-            if touch_L == 1:
-                robot.drive(speed, 0)
-            else:
-                robot.drive(speed,60)
-        return True
-    return False
-    # if isObject_L:  # 障害物右回避中の時
-    #     if (cs_r.color() == Color.BLACK or cs_l.color() == Color.BLACK):
-    #         robot.stop()
-    #         ev3.speaker.beep(523)
-    #         time.sleep(0.2)
-    #         robot.drive(-speed, 0)  # 後ろへ
-    #         time.sleep(1.6)
-    #         robot.stop()
-    #         time.sleep(0.5)
-
-    #         a_motor.run(120)
-    #         d_motor.run(400)
-    #         time.sleep(2.5)
-    #         a_motor.stop()
-    #         d_motor.stop()
-            
-
-    #         #robot.turn(-90)  # 右に曲がる
-    #         ev3.speaker.beep(240)
-    #         isObject_L = False
-    #     else:
-    #         if touch_R == 1:
-    #             robot.drive(speed, 0)
-    #         else:
-    #             robot.drive(speed,-60)
-    #     return True
-
-    #今は必ず右回避
-    if touch_L or touch_R:  # 左タッチセンサーが反応したとき
-        ev3.speaker.beep()
-        robot.drive(-speed, 0)  # 下がって
-        time.sleep(0.1)
-        robot.turn(-70)  # 右折
-        robot.drive(speed,0)
-        time.sleep(0.4)
-
-        isObject_first_R = True  # 障害物右回避
-        return True
-    # if touch_R:  # 右タッチセンサーが反応したとき
-    #     ev3.speaker.beep()
-    #     robot.drive(-speed, 0)  # 下がって
-    #     time.sleep(0.1)
-    #     robot.turn(90)  # 左折
-    #     robot.drive(speed, 0) 
-    #     time.sleep(0.4)
-    #     isObject_first_L = True  # 障害物左回避
-    #     continue
-    return False
 
 
 
@@ -396,4 +301,5 @@ def DownRescueArm():
 
 
 if __name__=="__main__":
+    print("nahanaha")
     main()
