@@ -31,6 +31,40 @@ class rescue:
         rescue.a_motor,rescue.d_motor,rescue.rescue_arm =a_motor,d_motor,rescue_arm
         rescue.robot=robot
 
+    @classmethod
+    def rescue_search(cls):
+        turn_dir=-1 #次に左折するなら-1,次に右折するなら1
+        rescue.DownRescueArm()
+        while True:
+            rescue.robot.drive(160,0)
+            ard_uart.get_sensors()
+            while not (ard_uart.touch_sensor[2] or ard_uart.touch_sensor[3]):
+                ard_uart.get_sensors()
+                rescue.PickUpRescueBalls()
+            time.sleep(0.2)
+            if ard_uart.touch_sensor[3]==False:
+                print("Only Right")
+                exit()
+            if ard_uart.touch_sensor[2]==False:
+                print("Only Left")
+                exit()
+            ard_uart.get_sensors()
+            rescue.PickUpRescueBalls()
+            rescue.robot.straight(-50)
+            rescue.UpRescueArm()
+            rescue.robot.straight(140)
+            rescue.robot.turn(-90*turn_dir)
+            rescue.robot.straight(200)
+            rescue.robot.turn(-90*turn_dir)
+
+            #rescue.robot.turn(180)
+            rescue.robot.straight(100)
+            rescue.robot.straight(-250)
+            rescue.DownRescueArm()
+            turn_dir*=-1
+
+
+
 
         
     @classmethod
@@ -44,8 +78,8 @@ class rescue:
     def DownRescueArm(cls):
         """ アームを下げる
         """
-        rescue.rescue_arm.run(-500)
-        time.sleep(2.0)
+        rescue.rescue_arm.run(-400)
+        time.sleep(1.5)
         rescue.rescue_arm.stop()
 
     #レスキューキットを回収
@@ -65,28 +99,34 @@ class rescue:
             ard_uart.OpenArms(1)
             rescue.robot.straight(100)
             rescue.robot.stop()
-
+    @classmethod
+    def PickUpRescueBalls(cls):
+        if ard_uart.photo_ball:
+            ard_uart.OpenArms(2)
+            
+            rescue.robot.stop()
+            time.sleep(0.5)
+            rescue.UpRescueArm()
+            ard_uart.get_sensors()
+            if ard_uart.check_ball:
+                ard_uart.OpenArms(3)
+            else:
+                ard_uart.OpenArms(4)
+            time.sleep(0.5)
+            ard_uart.OpenArms(1)
+            time.sleep(0.5)
+            rescue.robot.straight(-50)
+            rescue.DownRescueArm()
+            rescue.robot.drive(100,0)
         
+    def TurnHinanjo(isRightTurn=-1):
+        rescue.a_motor.run(250+150*isRightTurn)
+        rescue.d_motor.run(250-150*isRightTurn)
+        time.sleep(2)
+        rescue.robot.straight(50)
+        rescue.robot.turn(-90*isRightTurn)
 
 
-    def turnHinanjo(isLeftTurn):
-        if isLeftTurn:
-            robot.turn(45)
-            robot.straight(150)
-            if(cs_rescue.color()==Color.GREEN):
-                robot.turn(90)
-                robot.drive(-speed,0)
-                time.sleep(0.4)
-                robot.drive(speed,0)
-                time.sleep(0.4)
-                robot.turn(-90)
-                return True
-            robot.straight(150)
-            robot.turn(45)
-            return False
-        else:
-            robot.turn(-45)
-            robot.straight(150)
-            robot.turn(-45)   
+
 
 

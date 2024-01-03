@@ -82,7 +82,6 @@ class LineTrace():
 
 
             ev3.speaker.beep()
-            time.sleep(0.5)
             timer_set(3.2*40/90)
             black_white_threshould=70
             check_turn_speed=300

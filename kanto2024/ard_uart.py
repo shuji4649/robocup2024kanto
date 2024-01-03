@@ -39,7 +39,7 @@ def get_sensors():
     # # フォトリフレクタ・レスキュー
     photo_rescue_threshould=100
     date_int=get_int_date()
-    print(date_int)
+
 
     rescue_photo=( date_int < photo_rescue_threshould )
 
@@ -70,7 +70,7 @@ def OpenArms(num):
         Arduinoに指示を送ります。
         開閉の時間分待つ分までここに含まれます。
     Args:
-        num (int): 指示コード 1:両方開く 2:両方閉じる 3: 右だけ開く 4:右だけ閉める
+        num (int): 指示コード 1:両方開く 2:両方閉じる 3: 右だけ開く 4:左だけ閉める
     """    
     ard.write(num.to_bytes(1, "big"))
     time.sleep(0.4)

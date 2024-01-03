@@ -33,28 +33,21 @@ print(a_motor)
 
 
 def main():
-    print("nahnaha")
+    ard_uart.OpenArms(1)
+    #rescue.DownRescueArm()
     ev3.speaker.beep()
     #レスキューのアームを上にあげる
-    rescue.UpRescueArm()
+    # rescue.UpRescueArm()
     robot.stop()
-
+    #rescue.rescue_search()
 
     while True:
-
         ard_uart.get_sensors()
-
-        # if ard_uart.photo_ball:
-        #     ard_uart.OpenArms(2)
-        #     time.sleep(0.4)
-        #     robot.stop()
-        #     UpRescueArm()
-        #     ard_uart.OpenArms(4)
-        #     time.sleep(0.4)
-        #     ard_uart.OpenArms(1)
-        #     time.sleep(0.6)
-        #     DownRescueArm()
-        #     robot.drive(100,0)
+        print(ard_uart.touch_sensor)
+        continue
+        rescue.rescue_search()
+        # ard_uart.get_sensors()
+        continue
         if ObjectEscape(): continue 
                              
         line.pid_run()
@@ -77,7 +70,6 @@ def main():
             robot.reset()
             Rescue()
             continue
-
 
 
 

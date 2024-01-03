@@ -1,9 +1,9 @@
 
 // Arduinoのコードじゃあ
 
-const int touch[4] = {12, 11, 4, 5}; // マクロスイッチ　右、左、アーム右、左
+const int touch[4] = { 12, 11, 4, 5 };  // マクロスイッチ　右、左、アーム右、左
 
-const int line_photo[3] = {A1, A3, A2}; // ライントレース用のフォトリフレクタ 中央、右、左
+const int line_photo[3] = { A1, A3, A2 };  // ライントレース用のフォトリフレクタ 中央、右、左
 const int photo_rescue = A7;
 
 const int photo_ball = A0;
@@ -12,8 +12,7 @@ const int arm_servo_R = 10;
 const int arm_servo_L = 9;
 const int back_servo = 6;
 const int stop_btn = 4;
-const int echoPin = 2;
-const int trigPin = 3;
+
 
 #include <Servo.h>  //サーボのためのライブラリ
 Servo right;
@@ -31,11 +30,9 @@ void CloseLeft() {
   left.write(65);
 }
 
-int my_pow(int num)
-{
+int my_pow(int num) {
   int date = 1;
-  for (int i = 0; i < num; i++)
-  {
+  for (int i = 0; i < num; i++) {
     date *= 2;
   }
   return date;
@@ -43,9 +40,9 @@ int my_pow(int num)
 
 float Duration = 0;
 float Distance = 0;
-int GetUltrasonic()
-{
-
+int GetUltrasonic() {
+  const int echoPin = 2;
+  const int trigPin = 3;
   pinMode(echoPin, INPUT);
   pinMode(trigPin, OUTPUT);
 
@@ -63,54 +60,43 @@ int GetUltrasonic()
   return ((int)Distance);
 }
 
-int GetTouch()
-{
+int GetTouch() {
   int date = 0;
-  for (int i = 0; i < 4; i++)
-  {
-    if (!digitalRead(touch[i]))
-    {
+  for (int i = 0; i < 4; i++) {
+    if (!digitalRead(touch[i])) {
       date += my_pow(i);
     }
   }
   return date;
 }
 
-int getCheckBall()
-{
-  if (!digitalRead(check_ball))
-  {
+int getCheckBall() {
+  if (!digitalRead(check_ball)) {
     return 1;
-  }
-  else
-  {
+  } else {
     return 0;
   }
 }
 
-int GetPhoto(int num)
-{
+int GetPhoto(int num) {
   int val = analogRead(num);
   return val;
 }
 
-int GetColor()
-{
+int GetColor() {
   return 0;
 }
-void setup()
-{
+void setup() {
   // put your setup code here, to run once:
   Serial1.begin(9600);
   Serial.begin(9600);
 
-  for (int i = 0; i < 4; i++)
-  {
+  for (int i = 0; i < 4; i++) {
     pinMode(touch[i], INPUT_PULLUP);
   }
 
   pinMode(check_ball, INPUT_PULLUP);
-    right.attach(10);
+  right.attach(10);
   left.attach(9);
   CloseRight();
   CloseLeft();
@@ -119,18 +105,18 @@ void setup()
   OpenLeft();
 }
 
-void forDebug()
-{
+void forDebug() {
 
   //Serial.println(GetTouch());
-  //  for (int i = 0; i < 3; i++)
-  //  {
-  //    Serial.println(GetPhoto(line_photo[i]));
-  //  }
+  // for (int i = 0; i < 3; i++) {
+  //   Serial.print(i);
+  //   Serial.print(":");
+  //   Serial.println(GetPhoto(line_photo[i]));
+  // }
+  // delay(1000);
+  //  Serial.println(GetPhoto(photo_rescue));
 
-   Serial.println(GetPhoto(photo_rescue));
-
-  // Serial.println(GetUltrasonic());
+  Serial.println(GetUltrasonic());
 
   //Serial.println(GetPhoto(photo_ball));
   //Serial.println(getCheckBall());
@@ -138,14 +124,13 @@ void forDebug()
   // Serial.println(GetColor());
 }
 
-void loop()
-{
+void loop() {
   //forDebug();
   // アーム開閉信号受信
-  if(Serial1.available()){
-    int key = Serial1.read();  
+  if (Serial1.available()) {
+    int key = Serial1.read();
     Serial.println(key);
-    switch(key){
+    switch (key) {
       case 1:
         OpenRight();
         OpenLeft();
@@ -171,7 +156,7 @@ void loop()
 
   Serial1.write(GetPhoto(photo_rescue));
 
-  // Serial1.write(GetUltrasonic());
+  //Serial1.write(GetUltrasonic());
 
   Serial1.write(GetPhoto(photo_ball));
   Serial1.write(getCheckBall());
