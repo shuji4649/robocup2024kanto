@@ -19,7 +19,7 @@ class rescue:
     # a_motor=Motor(Port.A)
 
 
-    def __init__(self,a_motor,d_motor,rescue_arm,robot) :
+    def __init__(self,a_motor,d_motor,rescue_arm,robot,cs_l,cs_r) :
         """rescueクラスの初期化
 
         Args:
@@ -30,6 +30,26 @@ class rescue:
         """
         rescue.a_motor,rescue.d_motor,rescue.rescue_arm =a_motor,d_motor,rescue_arm
         rescue.robot=robot
+        rescue.cs_l,rescue.cs_r=cs_l,cs_r
+
+        rescue.LiveBall=False
+        rescue.DeadBall=False
+
+
+    @classmethod
+    def rescuekit_drop(cls):
+        rescue.robot.drive(160,0)
+
+        while True:
+            ard_uart.get_sensors()
+            if rescue.isEnterRescue() or rescue.isExitRescue():
+                rescue.UpRescueArm()
+                rescue.robot.straight(-70)
+                rescue.robot.turn(90)
+                rescue.robot.drive(160,0)
+                continue
+
+
 
     @classmethod
     def rescue_search(cls):
@@ -118,15 +138,28 @@ class rescue:
             rescue.robot.straight(-50)
             rescue.DownRescueArm()
             rescue.robot.drive(100,0)
-        
-    def TurnHinanjo(isRightTurn=-1):
+    @classmethod
+    def TurnHinanjo(cls,isRightTurn=-1):
         rescue.a_motor.run(250+150*isRightTurn)
         rescue.d_motor.run(250-150*isRightTurn)
         time.sleep(2)
         rescue.robot.straight(50)
+        #緑か赤か判断
         rescue.robot.turn(-90*isRightTurn)
 
+    @classmethod
+    def isEnterRescue():
+        """レスキューゾーン入口の銀色テープを検知します。
 
+        Returns:
+            bool: 銀色テープを検知したならばTrueを返します。
+        """    
+        return (sum(rescue.cs_r.rgb())>=280)
+    @classmethod
+    def isExitRescue():
+        """レスキューゾーン出口の黒色テープを検知します。
 
-
-
+        Returns:
+            bool: 黒色テープを検知したならばTrueを返します。
+        """    
+        return (sum(rescue.cs_r.rgb())<=40)

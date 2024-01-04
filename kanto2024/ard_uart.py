@@ -13,7 +13,9 @@ import time
 
 touch_sensor=[False,False,False,False]  # 右、左、レスキュー用右、左
 line_photo=[False,False,False] #ライントレース用のフォトリフレクタ、中央、右、左　白ならFalse、黒ならTrue
+line_photo_threshoulds=[200,250,250] #フォトリフレクタの黒か白かの閾値
 rescue_photo = False #レスキューキット用のフォトリフレクタ　反応すればTrue
+photo_rescue_threshould=170
 ultrasonic = 0  # 赤外線センサー右 cm
 photo_ball = False #アームの中に物体があるか検知　あればTrue
 check_ball = False #アームの導電性を確認、電気が流れればTrue
@@ -25,26 +27,28 @@ def get_sensors():
     """ Arduinoからセンサーの値を取得し,値に格納します
     """
     ard.clear()
+
     date = ard.read(1)
+
     while date != b'\xff':
         date = ard.read(1)
 
     touch = get_int_date()  # タッチセンサーの通信データ
     for i in range(4):  touch_sensor[i]=(touch >> i) & 1 #ビットで割り当てていくぅ
-    photo_threshould=250 #フォトリフレクタの黒か白かの閾値
-    # for i in range(3):
-    #     date_int=get_int_date()
-    #     line_photo[i]=( date_int > photo_threshould )
+
+    for i in range(3):
+        date_int=get_int_date()
+        line_photo[i]=( date_int > line_photo_threshoulds[i] )
 
     # # フォトリフレクタ・レスキュー
-    photo_rescue_threshould=100
+
     date_int=get_int_date()
 
-
+    print(date_int)
     rescue_photo=( date_int < photo_rescue_threshould )
 
     # # 超音波センサ
-    # ultrasonic = get_int_date()  # 超音波センサー右の通信データ
+    #ultrasonic = get_int_date()  # 超音波センサー右の通信データ
 
     # ボール検知フォトトランジスタ
     photo_ball_threshould=240 #ボール検知の閾値

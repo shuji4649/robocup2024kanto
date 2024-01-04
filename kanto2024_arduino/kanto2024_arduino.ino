@@ -3,7 +3,7 @@
 
 const int touch[4] = { 12, 11, 4, 5 };  // マクロスイッチ　右、左、アーム右、左
 
-const int line_photo[3] = { A1, A3, A2 };  // ライントレース用のフォトリフレクタ 中央、右、左
+const int line_photo[3] = { A3, A2, A1 };  // ライントレース用のフォトリフレクタ 中央、右、左
 const int photo_rescue = A7;
 
 const int photo_ball = A0;
@@ -17,6 +17,7 @@ const int stop_btn = 4;
 #include <Servo.h>  //サーボのためのライブラリ
 Servo right;
 Servo left;
+Servo back;
 void OpenRight() {
   right.write(70);
 }
@@ -29,7 +30,15 @@ void OpenLeft() {
 void CloseLeft() {
   left.write(65);
 }
+void BackOpenRight(){
 
+}
+void BackOpenLeft(){
+
+}
+void BackClose(){
+
+}
 int my_pow(int num) {
   int date = 1;
   for (int i = 0; i < num; i++) {
@@ -79,7 +88,7 @@ int getCheckBall() {
 }
 
 int GetPhoto(int num) {
-  int val = analogRead(num);
+  int val = analogRead(num)/4;
   return val;
 }
 
@@ -107,16 +116,17 @@ void setup() {
 
 void forDebug() {
 
-  //Serial.println(GetTouch());
-  // for (int i = 0; i < 3; i++) {
-  //   Serial.print(i);
-  //   Serial.print(":");
-  //   Serial.println(GetPhoto(line_photo[i]));
-  // }
-  // delay(1000);
+  // Serial.println(GetTouch());
+
+  for (int i = 0; i < 3; i++) {
+    Serial.print(i);
+    Serial.print(":");
+    Serial.println(GetPhoto(line_photo[i]));
+  }
+  delay(1000);
   //  Serial.println(GetPhoto(photo_rescue));
 
-  Serial.println(GetUltrasonic());
+  // Serial.println(GetUltrasonic());
 
   //Serial.println(GetPhoto(photo_ball));
   //Serial.println(getCheckBall());
@@ -154,6 +164,9 @@ void loop() {
 
   Serial1.write(GetTouch());
 
+  for (int i = 0; i < 3; i++) {
+    Serial1.write(GetPhoto(line_photo[i]));
+  }
   Serial1.write(GetPhoto(photo_rescue));
 
   //Serial1.write(GetUltrasonic());

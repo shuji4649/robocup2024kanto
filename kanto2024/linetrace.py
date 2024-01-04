@@ -10,6 +10,7 @@ import time
 import random
 from collections import deque
 import threading
+import ard_uart
 
 #高速モード
 P_GAIN_fast=1.5
@@ -44,7 +45,7 @@ class LineTrace():
         self.ev3=EV3Brick()
         self.straightcount=0
         self.straightcount_s=0
-        print(self.a_motor)
+
 
     def pid_run(self):
         """PIDライントレースをします
@@ -69,43 +70,43 @@ class LineTrace():
 
         speed_r=1
 
-        #トの字/直角
-        if abs(self.dif0)>=260:
+       #トの字/直角
+        if abs(self.dif0)>=240:
             
             self.a_motor.stop()
             self.d_motor.stop()
-            ev3.speaker.beep(880,100)
+            ev3.speaker.beep(523)
             f=1 if self.dif0>0 else -1 #左へ曲がるなら1
+            # f=1 if ard_uart.line_photo[2] else -1 #左へ曲がるなら1
             self.robot.straight(20)
             #self.robot.turn(-15*f)
             self.robot.stop()
 
-
-            ev3.speaker.beep()
-            timer_set(3.2*40/90)
-            black_white_threshould=70
+            ard_uart.get_sensors()
             check_turn_speed=300
-            self.a_motor.run(-check_turn_speed*f)
-            self.d_motor.run(check_turn_speed*f)
-            while True:
-                if (f==1 and sum(self.cs_r.rgb())<black_white_threshould) or (f==-1 and sum(self.cs_l.rgb())<black_white_threshould): #トの字だった
-                    
-                    self.a_motor.stop()
-                    self.d_motor.stop()
-                    ev3.speaker.beep(523)
-                    self.a_motor.run(check_turn_speed*f)
-                    self.d_motor.run(-check_turn_speed*f)
-                    while (abs(sum(self.cs_l.rgb())-sum(self.cs_r.rgb()))>15):
-                        hoge=1
-
-                    break
-                if timer_done:
-                    timer_done=False
-                if (f==1 and sum(self.cs_l.rgb())<black_white_threshould) or (f==-1 and sum(self.cs_r.rgb())<black_white_threshould): #直角だった
-                    while abs(sum(self.cs_l.rgb())-sum(self.cs_r.rgb()))>10:
-                        hoge=1
-
-                    break
+            if ard_uart.line_photo[0]==False: #直角です
+                ev3.speaker.beep(440)
+                self.robot.drive(-50,0)
+                while (f==1 and sum(self.cs_l.rgb())>70) or (f==-1 and sum(self.cs_r.rgb())>70):
+                    hoge=1
+                self.robot.stop()
+                self.robot.straight(20)
+                self.robot.stop()
+                self.a_motor.run(-check_turn_speed*f)
+                self.d_motor.run(check_turn_speed*f)
+                while  (f==1 and sum(self.cs_l.rgb())>70) or (f==-1 and sum(self.cs_r.rgb())>70):
+                    hoge=1
+                self.a_motor.stop()
+                self.d_motor.stop()
+                self.robot.turn(10*f)
+                self.robot.straight(10)
+                self.robot.stop()
+                self.a_motor.run(-check_turn_speed*f)
+                self.d_motor.run(check_turn_speed*f)
+                while  (f==1 and sum(self.cs_l.rgb())>70) or (f==-1 and sum(self.cs_r.rgb())>70):
+                    hoge=1
+                while (abs(sum(self.cs_l.rgb())-sum(self.cs_r.rgb()))>15 ):
+                    hoge=1
             self.a_motor.stop()
             self.d_motor.stop()
                     
@@ -113,11 +114,11 @@ class LineTrace():
             notgreen_thread.start()
             return
 
-
-        #直線をまたいだ後は緑検知しない
-        if sum(self.cs_l.rgb())<40 and sum(self.cs_r.rgb())<40:
-            notgreen_thread=threading.Thread(target=not_see_green_set)
-            notgreen_thread.start()
+        # if sum(self.cs_l.rgb())<40 and sum(self.cs_r.rgb())<40:
+        # #直線をまたいだ後は緑検知しない
+        # if ard_uart.line_photo[1] and ard_uart.line_photo[2]:
+        #     notgreen_thread=threading.Thread(target=not_see_green_set)
+        #     notgreen_thread.start()
 
 
 
@@ -133,15 +134,12 @@ class LineTrace():
                 I = self.difSum*I_GAIN 
                 D = (self.dif0-self.dif1)*D_GAIN 
                 speed=SPEED
-            #print("Hey!!!!!")
         elif abs(self.dif0)<=60:
             self.straightcount_s=0
             P = self.dif0*P_GAIN
             I = self.difSum*I_GAIN 
             D = (self.dif0-self.dif1)*D_GAIN 
             speed=SPEED
-            #print("hoi--")
-
         else:
             self.straightcount_s=0
             P = self.dif0*P_GAIN_slow
@@ -163,9 +161,6 @@ class LineTrace():
         # I = self.difSum*I_GAIN_slow
         # D = (self.dif0-self.dif1)*D_GAIN_slow
         # speed=SPEED_slow
-
-
-
 
         k=min(max(P+I+D,-600),600)
         self.a_motor.run(speed-k)
@@ -214,7 +209,7 @@ class LineTrace():
         self.a_motor.stop()
         self.d_motor.stop()
         if found_black:
-            turnspeed=300
+            turnspeed=400
             ev3=EV3Brick()
             ev3.speaker.beep()
             time.sleep(1)

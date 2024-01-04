@@ -18,7 +18,8 @@ from rescue import rescue
 import threading
 ev3 = EV3Brick()
 # モータ・センサ設定
-a_motor,d_motor = Motor(Port.A),Motor(Port.D)  # 移動用モーター
+
+a_motor,d_motor = Motor(Port.B),Motor(Port.D)  # 移動用モーター
 rescue_arm=Motor(Port.C)
 cs_r,cs_l = ColorSensor(Port.S2),ColorSensor(Port.S3)  # 左のColorSensor
 a_motor.reset_angle(0)
@@ -27,9 +28,8 @@ d_motor.reset_angle(0)
 # drivebaseを設定　機体を変えるならここを再設定
 robot = DriveBase(d_motor, a_motor, 35, 240)
 line=LineTrace(a_motor,d_motor,cs_r,cs_l,robot)
-rc=rescue(a_motor,d_motor,rescue_arm,robot)
+rc=rescue(a_motor,d_motor,rescue_arm,robot,cs_l,cs_r)
 ev3_music=music()
-print(a_motor)
 
 
 def main():
@@ -37,20 +37,17 @@ def main():
     #rescue.DownRescueArm()
     ev3.speaker.beep()
     #レスキューのアームを上にあげる
-    # rescue.UpRescueArm()
+    rescue.UpRescueArm()
     robot.stop()
     #rescue.rescue_search()
 
     while True:
         ard_uart.get_sensors()
-        print(ard_uart.touch_sensor)
-        continue
-        rescue.rescue_search()
-        # ard_uart.get_sensors()
-        continue
-        if ObjectEscape(): continue 
-                             
+
+        # if ObjectEscape(): continue 
+            
         line.pid_run()
+
 
         rescue.PickUpRescueKit()
         
@@ -100,11 +97,6 @@ def isEnterRescue():
         return True
     else:
         return False
-
-
-
-
-
 
 
 
