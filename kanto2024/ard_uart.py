@@ -13,7 +13,7 @@ import time
 
 touch_sensor=[False,False,False,False]  # 右、左、レスキュー用右、左
 line_photo=[False,False,False] #ライントレース用のフォトリフレクタ、中央、右、左　白ならFalse、黒ならTrue
-line_photo_threshoulds=[200,250,250] #フォトリフレクタの黒か白かの閾値
+line_photo_threshoulds=[230,250,250] #フォトリフレクタの黒か白かの閾値
 rescue_photo = False #レスキューキット用のフォトリフレクタ　反応すればTrue
 photo_rescue_threshould=170
 ultrasonic = 0  # 赤外線センサー右 cm
@@ -38,13 +38,13 @@ def get_sensors():
 
     for i in range(3):
         date_int=get_int_date()
-        line_photo[i]=( date_int > line_photo_threshoulds[i] )
-
+        if date_int>100:
+            line_photo[i]=( date_int > line_photo_threshoulds[i] )
     # # フォトリフレクタ・レスキュー
 
     date_int=get_int_date()
 
-    print(date_int)
+
     rescue_photo=( date_int < photo_rescue_threshould )
 
     # # 超音波センサ
@@ -68,13 +68,13 @@ def get_int_date():
         int: arduinoから受け取ったデータ
     """
     return int.from_bytes(ard.read(1),"big")
-#アーム開閉 0:閉じる 1:右を開ける 2: 左を開ける 3:両方開ける
+#アーム開閉
 def OpenArms(num):
     """アームを開閉します。
         Arduinoに指示を送ります。
         開閉の時間分待つ分までここに含まれます。
     Args:
-        num (int): 指示コード 1:両方開く 2:両方閉じる 3: 右だけ開く 4:左だけ閉める
+        num (int): 指示コード 1:両方開く 2:両方閉じる 3: 右だけ開く 4:左だけ閉める 5:後ろ右だけ開ける 6:後ろ左だけ開ける 7:後ろ閉める
     """    
     ard.write(num.to_bytes(1, "big"))
     time.sleep(0.4)

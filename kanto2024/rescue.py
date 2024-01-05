@@ -19,7 +19,7 @@ class rescue:
     # a_motor=Motor(Port.A)
 
 
-    def __init__(self,a_motor,d_motor,rescue_arm,robot,cs_l,cs_r) :
+    def __init__(self,a_motor,d_motor,rescue_arm,robot,cs_l,cs_r,cs_side) :
         """rescueクラスの初期化
 
         Args:
@@ -31,13 +31,15 @@ class rescue:
         rescue.a_motor,rescue.d_motor,rescue.rescue_arm =a_motor,d_motor,rescue_arm
         rescue.robot=robot
         rescue.cs_l,rescue.cs_r=cs_l,cs_r
-
-        rescue.LiveBall=False
+        rescue.cs_side=cs_side
+        rescue.LiveBall=True
         rescue.DeadBall=False
 
 
     @classmethod
     def rescuekit_drop(cls):
+        """レスキューキットを落とすための周回
+        """
         rescue.robot.drive(160,0)
 
         while True:
@@ -48,6 +50,18 @@ class rescue:
                 rescue.robot.turn(90)
                 rescue.robot.drive(160,0)
                 continue
+            if ard_uart.touch_sensor[3]:
+                rescue.robot.straight(20)
+                ard_uart.get_sensors()
+                if ard_uart.touch_sensor[4]: #壁でした
+                    rescue.robot.straight(-30)
+                    rescue.UpRescueArm()
+                    rescue.robot.turn(90)
+                    rescue.robot.drive(160,0)
+                else:
+                    rescue.robot.straight(-30)
+                    rescue.TurnHinanjo()
+                
 
 
 
@@ -144,8 +158,30 @@ class rescue:
         rescue.d_motor.run(250-150*isRightTurn)
         time.sleep(2)
         rescue.robot.straight(50)
-        #緑か赤か判断
+
+
+        
         rescue.robot.turn(-90*isRightTurn)
+        rescue.robot.straight(-50)
+        rescue.robot.straight(20)
+        hinanjocolor=rescue.cs_side.color()#緑？赤？
+        if hinanjocolor==Color.GREEN:
+            ard_uart.OpenArms(5)
+            rescue.LiveBall=False
+        else:
+            ard_uart.OpenArms(6)
+            rescue.DeadBall=False
+        time.sleep(2)
+        ard_uart.OpenArms(7)
+        rescue.robot.straight(30)
+        rescue.robot.turn(90*isRightTurn)
+
+        rescue.a_motor.run(250+150*isRightTurn)
+        rescue.d_motor.run(250-150*isRightTurn)
+        time.sleep(2)
+        rescue.robot.straight(50)
+
+
 
     @classmethod
     def isEnterRescue():

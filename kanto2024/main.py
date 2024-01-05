@@ -19,16 +19,18 @@ import threading
 ev3 = EV3Brick()
 # モータ・センサ設定
 
-a_motor,d_motor = Motor(Port.B),Motor(Port.D)  # 移動用モーター
+a_motor= Motor(Port.B)
+d_motor = Motor(Port.D)  # 移動用モーター
 rescue_arm=Motor(Port.C)
 cs_r,cs_l = ColorSensor(Port.S2),ColorSensor(Port.S3)  # 左のColorSensor
+cs_side=1
 a_motor.reset_angle(0)
 d_motor.reset_angle(0)
 
 # drivebaseを設定　機体を変えるならここを再設定
 robot = DriveBase(d_motor, a_motor, 35, 240)
 line=LineTrace(a_motor,d_motor,cs_r,cs_l,robot)
-rc=rescue(a_motor,d_motor,rescue_arm,robot,cs_l,cs_r)
+rc=rescue(a_motor,d_motor,rescue_arm,robot,cs_l,cs_r,cs_side)
 ev3_music=music()
 
 
@@ -49,7 +51,7 @@ def main():
         line.pid_run()
 
 
-        rescue.PickUpRescueKit()
+        #rescue.PickUpRescueKit()
         
         if line.checkRed():
             robot.stop()

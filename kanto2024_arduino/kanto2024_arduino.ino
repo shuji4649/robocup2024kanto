@@ -31,12 +31,13 @@ void CloseLeft() {
   left.write(65);
 }
 void BackOpenRight(){
-
+  back.write(180);
 }
 void BackOpenLeft(){
-
+  back.write(0);
 }
 void BackClose(){
+  back.write(90);
 
 }
 int my_pow(int num) {
@@ -105,13 +106,16 @@ void setup() {
   }
 
   pinMode(check_ball, INPUT_PULLUP);
-  right.attach(10);
-  left.attach(9);
+  right.attach(arm_servo_R);
+  left.attach(arm_servo_L);
+  back.attach(back_servo);
   CloseRight();
   CloseLeft();
   delay(500);
   OpenRight();
   OpenLeft();
+  BackOpenRight();
+  BackClose();
 }
 
 void forDebug() {
@@ -135,7 +139,8 @@ void forDebug() {
 }
 
 void loop() {
-  //forDebug();
+  forDebug();
+  return ;
   // アーム開閉信号受信
   if (Serial1.available()) {
     int key = Serial1.read();
