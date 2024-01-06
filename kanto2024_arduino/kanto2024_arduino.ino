@@ -1,7 +1,7 @@
 
 // Arduinoのコードじゃあ
 
-const int touch[4] = { 12, 11,4,7 };  // マクロスイッチ　右、左、アーム右、左
+const int touch[4] = { 12, 11,5,7 };  // マクロスイッチ　右、左、アーム右、左
 
 const int line_photo[3] = { A3, A1, A2 };  // ライントレース用のフォトリフレクタ 中央、右、左
 const int photo_rescue = A7;
@@ -127,7 +127,7 @@ void setup() {
 
 void forDebug() {
 
-  // Serial.println(GetTouch());
+  Serial.println(GetTouch());
 
   // for (int i = 0; i < 3; i++) {
   //   Serial.print(i);
@@ -140,15 +140,71 @@ void forDebug() {
   // Serial.println(GetUltrasonic());
 
   //Serial.println(GetPhoto(photo_ball));
-  Serial.println(getCheckBall());
+  //Serial.println(getCheckBall());
 
   // Serial.println(GetColor());
 }
 
-void loop() {
-  //forDebug();
-  // return ;
+void forModoki(){
+
   
+  // アーム開閉信号受信
+  if (Serial.available()) {
+    int key = Serial.read();
+    switch (key) {
+      case 1:
+        OpenRight();
+        OpenLeft();
+        break;
+      case 2:
+        CloseRight();
+        CloseLeft();
+
+        break;
+      case 3:
+        OpenRight();
+
+        break;
+      case 4:
+        OpenLeft();
+        break;
+      case 5:
+        BackOpenRight();
+        break;
+      case 6:
+        BackOpenLeft();
+        break;
+      case 7:
+        BackClose();
+        break;
+      case 8:
+        PlayMode=0;
+        break;
+      case 9:
+        PlayMode=1;
+        break;
+        
+    }
+  }
+  // 信号　1.255 2.タッチセンサ 3.レスキューキット 4.超音波 5.ボール検知フォト 6.伝導性 7.カラーセンサ
+  Serial.write(255);
+
+  Serial.write(GetTouch());
+
+  for (int i = 0; i < 3; i++) {
+    Serial.write(GetPhoto(line_photo[i]));
+  }
+  Serial.write(GetPhoto(photo_rescue));
+
+  //Serial1.write(GetUltrasonic()); //超音波は使いません。
+  //Serial.println(GetPhoto(photo_rescue));
+
+  Serial.write(GetPhoto(photo_ball));
+  Serial.write(getCheckBall());
+  //Serial1.write(GetColor());
+}
+void loop() {
+  forDebug();
   // アーム開閉信号受信
   if (Serial1.available()) {
     int key = Serial1.read();

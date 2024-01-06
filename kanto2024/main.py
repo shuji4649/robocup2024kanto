@@ -43,11 +43,11 @@ def main():
     #レスキューのアームを上にあげる
     rescue.UpRescueArm()
     robot.stop()
-    #rescue.DownRescueArm()
-    #rescue.rescuekit_drop()
+    # rescue.DownRescueArm()
+    rescue.rescuekit_drop()
 
     while True:
-        
+
         ard_uart.get_sensors()
 
 
@@ -57,7 +57,7 @@ def main():
         
 
 
-        #rescue.PickUpRescueKit()
+        rescue.PickUpRescueKit()
         
         if line.checkRed():
             robot.stop()
@@ -66,17 +66,15 @@ def main():
             break
         line.checkGreen() 
 
-
-
-        continue
-        if isEnterRescue():
-            ev3.speaker.beep(440)
-
-            robot.straight(300)#前に出る
-            robot.stop()
-            robot.reset()
-            Rescue()
-            continue
+        # if rescue.isEnterRescue():
+        #     ev3.speaker.beep(261)
+        #     ev3.speaker.beep(329)
+        #     ev3.speaker.beep(391)
+        #     robot.stop()
+        #     a_motor.stop()
+        #     d_motor.stop()
+        #     rescue.rescuekit_drop()
+        # continue
 
 
 
@@ -228,25 +226,27 @@ def check_green():
         difSum = 0
 
 isObject_R=False
+isObject_L=False
 def ObjectEscape():
-    global isObject_R
-    if isObject_R:  # 障害物右回避中の時
+    global isObject_R,isObject_L
+    if isObject_R or isObject_L:  # 障害物右回避中の時
+        isRturn=1 if isObject_R else -1
         if (cs_r.color() == Color.BLACK or cs_l.color() == Color.BLACK):
             a_motor.stop()
             d_motor.stop()
             robot.stop()
             ev3.speaker.beep(523)
             time.sleep(0.2)
-            robot.straight(-80) # 後ろへ
+            robot.straight(40) # 後ろへ
 
             robot.stop()
-            robot.turn(-20)
+            robot.turn(-40*isRturn)
             robot.drive(100,0)
             while sum(cs_l.rgb())>100 and sum(cs_r.rgb())>100:
                 hoge=1
             robot.stop()
-            a_motor.run(200)
-            d_motor.run(-200)
+            a_motor.run(200*isRturn)
+            d_motor.run(-200*isRturn)
             while sum(cs_l.rgb())<100 or sum(cs_r.rgb())<100 or abs(sum(cs_l.rgb())-sum(cs_r.rgb()))>15:
                 hoge=1
             a_motor.stop()
@@ -255,22 +255,23 @@ def ObjectEscape():
             
             ev3.speaker.beep(240)
             isObject_R = False
+            isObject_L=False
         else:
-            if ard_uart.touch_sensor[1]:
+            if (isObject_L and ard_uart.touch_sensor[0] ) or (isObject_R and ard_uart.touch_sensor[1] ):
                 a_motor.run(200)
                 d_motor.run(200)
             else:
-                a_motor.run(-300)
-                d_motor.run(300)
+                a_motor.run(-300*isRturn)
+                d_motor.run(300*isRturn)
         return True
 
     if ard_uart.touch_sensor[0] or ard_uart.touch_sensor[1]:
         ev3.speaker.beep()
         robot.straight(-50)  # 下がって
-        robot.turn(-60)  # 右折
-        robot.straight(60) 
+        robot.turn(60)  # 右折
+        robot.straight(100) 
         robot.stop()
-        isObject_R=True
+        isObject_L=True
         return True
 
 

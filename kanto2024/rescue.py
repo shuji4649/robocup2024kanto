@@ -41,35 +41,34 @@ class rescue:
         """レスキューキットを落とすための周回
         """
         rescue.LiveBall=True
-
         ard_uart.get_sensors()
 
-        rescue.robot.turn(-90)
-
+        #rescue.robot.turn(-90)
+        rescue.DownRescueArm()
         rescue.robot.drive(120,0)
         while True:
             ard_uart.get_sensors()
-            rescue.PickUpRescueBalls()
-            if rescue.isEnterRescue() or rescue.isExitRescue():
-                rescue.PickUpRescueBalls(lastDownArm=False)
-                rescue.robot.straight(-70)
-                rescue.robot.turn(90)
-                rescue.robot.drive(160,0)
-                continue
+
+            # if rescue.isEnterRescue() or rescue.isExitRescue():
+            #     rescue.UpArmWithPickUpBalls()
+            #     rescue.robot.straight(-70)
+            #     rescue.robot.turn(90)
+            #     rescue.robot.drive(160,0)
+            #     continue
             if ard_uart.touch_sensor[2]:
                 rescue.robot.straight(20)
                 ard_uart.get_sensors()
                 if ard_uart.touch_sensor[3]: #壁でした
-                    rescue.robot.straight(-30)
-                    rescue.PickUpRescueBalls(lastDownArm=False)
+                    rescue.robot.straight(-50)
+                    rescue.UpArmWithPickUpBalls()
                     rescue.robot.turn(90)
                     rescue.robot.drive(160,0)
                 else:
                     rescue.robot.straight(-30)
                     rescue.robot.stop()
-                    rescue.PickUpRescueBalls(lastDownArm=False)
+                    rescue.UpArmWithPickUpBalls
                     rescue.TurnHinanjo()
-                    
+
             if ard_uart.ultrasonic>=20 and rescue.LiveBall==False:
                 rescue.robot.turn(-90)
                 rescue.robot.reset()
@@ -84,7 +83,8 @@ class rescue:
                         rescue.robot.drive(120,0)
                         break
                         
-                
+            if rescue.PickUpRescueBalls(): rescue.robot.drive(120,0)
+
 
 
 
@@ -157,7 +157,7 @@ class rescue:
             rescue.robot.straight(100)
             rescue.robot.stop()
     @classmethod
-    def PickUpRescueBalls(cls,lastDownArm=True):
+    def PickUpRescueBalls(cls):
         if ard_uart.photo_ball:
             #アームを閉じる
             ard_uart.OpenArms(2)
@@ -181,9 +181,32 @@ class rescue:
 
             #バック
             rescue.robot.straight(-50)
-            if lastDownArm:
-                rescue.DownRescueArm()
+            rescue.DownRescueArm()
             #rescue.robot.drive(100,0)
+            return True
+        else: return False
+    @classmethod
+    def UpArmWithPickUpBalls(cls):
+        ard_uart.OpenArms(2)
+        rescue.robot.stop()
+        time.sleep(0.5)
+
+        #アームを上げる
+        rescue.UpRescueArm()
+
+        #ボール判別、落とす！
+        ard_uart.get_sensors()
+        if ard_uart.check_ball:
+            ard_uart.OpenArms(3)
+        else:
+            ard_uart.OpenArms(4)
+        time.sleep(0.5)
+
+        #アーム両方開放
+        ard_uart.OpenArms(1)
+        time.sleep(0.5)
+
+
     @classmethod
     def TurnHinanjo(cls,isRightTurn=-1):
         """避難所を曲がりながら投下。デフォルトは左曲がり
@@ -202,7 +225,7 @@ class rescue:
         #落とす向きになる
         rescue.robot.turn(-90*isRightTurn)
         rescue.robot.straight(-100)
-        rescue.robot.straight(20)
+        rescue.robot.straight(30)
 
         #色を確認・適切なものを落とす！！
         print(rescue._hinajoColor())
@@ -231,7 +254,7 @@ class rescue:
 
 
     @classmethod
-    def isEnterRescue():
+    def isEnterRescue(cls):
         """レスキューゾーン入口の銀色テープを検知します。
 
         Returns:
@@ -239,7 +262,7 @@ class rescue:
         """    
         return (sum(rescue.cs_r.rgb())>=280)
     @classmethod
-    def isExitRescue():
+    def isExitRescue(cls):
         """レスキューゾーン出口の黒色テープを検知します。
 
         Returns:
@@ -247,7 +270,7 @@ class rescue:
         """    
         return (sum(rescue.cs_r.rgb())<=40) 
     @classmethod
-    def _hinajoColor():
+    def _hinajoColor(cls):
         """赤なら2,緑なら1、それ以外なら0
 
         Returns:

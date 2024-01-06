@@ -79,7 +79,7 @@ class LineTrace():
             ev3.speaker.beep(523)
             # f=1 if self.dif0>0 else -1 #左へ曲がるなら1
             f=1 if ard_uart.line_photo[2] else -1 #左へ曲がるなら1
-            self.robot.straight(20)
+            self.robot.straight(30)
             #self.robot.turn(-15*f)
             self.robot.stop()
             ard_uart.get_sensors()
@@ -152,7 +152,7 @@ class LineTrace():
             speed=SPEED_slow
             #print("nyo")
 
-        debug_speeds=3
+        debug_speeds=0
         if debug_speeds==1:
             P = self.dif0*P_GAIN_fast
             I = self.difSum*I_GAIN_fast
@@ -197,30 +197,34 @@ class LineTrace():
         if not_see_green: return
         whichGo=0 #1右2左 3引き返す
         if isGreen(self.cs_r.rgb()) or isGreen(self.cs_l.rgb()):
+            time.sleep(0.2)
             self.a_motor.stop()
             self.d_motor.stop()
+            time.sleep(3)
             if isGreen(self.cs_r.rgb()): whichGo+=1
             if isGreen(self.cs_l.rgb()): whichGo+=2
-            
         else:
             return
         print("green!!!")
+        
         timer_set(0.5)
         self.a_motor.run(200)
         self.d_motor.run(200)
         found_black=False
         while not timer_done:
-            if sum(self.cs_r.rgb())<40 or sum(self.cs_l.rgb())<40: 
+            ard_uart.get_sensors()
+            if ard_uart.line_photo[1] or ard_uart.line_photo[2]: 
                 found_black=True
                 self.a_motor.stop()
                 self.d_motor.stop()
         self.a_motor.stop()
         self.d_motor.stop()
+
         if found_black:
+            print("foundGreen!!")
             turnspeed=400
             ev3=EV3Brick()
             ev3.speaker.beep()
-            time.sleep(1)
             if whichGo==3:#Uターン
                 self.robot.straight(-50)
                 self.robot.turn(140)
@@ -234,13 +238,13 @@ class LineTrace():
                 self.a_motor.stop()
                 self.d_motor.stop()
             else:
-                f=1 if whichGo==2 else -1 #
+                f=1 if whichGo==2 else -1 #左に曲がるなら1
                 # self.robot.drive(60,30*f)
                 # time.sleep(1.2)
                 # self.robot.stop()
                 # time.sleep(1)
                 self.robot.straight(26)
-                self.robot.turn(40*f)
+                self.robot.turn(30*f)
                 self.robot.stop()
                 self.a_motor.run(-turnspeed*f)
                 self.d_motor.run(turnspeed*f)
@@ -248,7 +252,7 @@ class LineTrace():
                     hoge=1
                 self.a_motor.stop()
                 self.d_motor.stop()
-                self.robot.turn(40*f)
+                self.robot.turn(30*f)
                 # while (abs(sum(self.cs_l.rgb())-sum(self.cs_r.rgb())))>15:
                 #     hoge=1
                 self.robot.straight(10)
