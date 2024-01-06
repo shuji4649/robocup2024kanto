@@ -1,9 +1,9 @@
 
 // Arduinoのコードじゃあ
 
-const int touch[4] = { 12, 11, 4, 5 };  // マクロスイッチ　右、左、アーム右、左
+const int touch[4] = { 12, 11,4,7 };  // マクロスイッチ　右、左、アーム右、左
 
-const int line_photo[3] = { A3, A2, A1 };  // ライントレース用のフォトリフレクタ 中央、右、左
+const int line_photo[3] = { A3, A1, A2 };  // ライントレース用のフォトリフレクタ 中央、右、左
 const int photo_rescue = A7;
 
 const int photo_ball = A0;
@@ -13,6 +13,8 @@ const int arm_servo_L = 9;
 const int back_servo = 6;
 const int stop_btn = 4;
 
+
+int PlayMode=0;//0はライントレース　1はレスキュー
 
 #include <Servo.h>  //サーボのためのライブラリ
 Servo right;
@@ -31,10 +33,10 @@ void CloseLeft() {
   left.write(65);
 }
 void BackOpenRight(){
-  back.write(180);
+  back.write(0);
 }
 void BackOpenLeft(){
-  back.write(0);
+  back.write(180);
 }
 void BackClose(){
   back.write(90);
@@ -49,7 +51,7 @@ int my_pow(int num) {
 }
 
 float Duration = 0;
-float Distance = 0;
+int Distance = 0;
 int GetUltrasonic() {
   const int echoPin = 2;
   const int trigPin = 3;
@@ -67,7 +69,7 @@ int GetUltrasonic() {
   Duration = pulseIn(echoPin, HIGH);
   Duration = Duration / 2;
   Distance = Duration * 340 * 100 / 1000000;
-  return ((int)Distance);
+  return Distance;
 }
 
 int GetTouch() {
@@ -90,7 +92,7 @@ int getCheckBall() {
 
 int GetPhoto(int num) {
   int val = analogRead(num)/4;
-  return val;
+  return min(254,val);
 }
 
 int GetColor() {
@@ -114,33 +116,39 @@ void setup() {
   delay(500);
   OpenRight();
   OpenLeft();
+  delay(500);
   BackOpenRight();
+  delay(1000);
+  BackOpenLeft();
+  delay(1000);
   BackClose();
+  PlayMode=0;
 }
 
 void forDebug() {
 
   // Serial.println(GetTouch());
 
-  for (int i = 0; i < 3; i++) {
-    Serial.print(i);
-    Serial.print(":");
-    Serial.println(GetPhoto(line_photo[i]));
-  }
-  delay(1000);
-  //  Serial.println(GetPhoto(photo_rescue));
+  // for (int i = 0; i < 3; i++) {
+  //   Serial.print(i);
+  //   Serial.print(":");
+  //   Serial.println(GetPhoto(line_photo[i]));
+  // }
+  // delay(1000);
+  // Serial.println(GetPhoto(photo_rescue));
 
   // Serial.println(GetUltrasonic());
 
   //Serial.println(GetPhoto(photo_ball));
-  //Serial.println(getCheckBall());
+  Serial.println(getCheckBall());
 
   // Serial.println(GetColor());
 }
 
 void loop() {
-  forDebug();
-  return ;
+  //forDebug();
+  // return ;
+  
   // アーム開閉信号受信
   if (Serial1.available()) {
     int key = Serial1.read();
@@ -162,6 +170,22 @@ void loop() {
       case 4:
         OpenLeft();
         break;
+      case 5:
+        BackOpenRight();
+        break;
+      case 6:
+        BackOpenLeft();
+        break;
+      case 7:
+        BackClose();
+        break;
+      case 8:
+        PlayMode=0;
+        break;
+      case 9:
+        PlayMode=1;
+        break;
+        
     }
   }
   // 信号　1.255 2.タッチセンサ 3.レスキューキット 4.超音波 5.ボール検知フォト 6.伝導性 7.カラーセンサ
@@ -174,7 +198,8 @@ void loop() {
   }
   Serial1.write(GetPhoto(photo_rescue));
 
-  //Serial1.write(GetUltrasonic());
+  //Serial1.write(GetUltrasonic()); //超音波は使いません。
+  //Serial.println(GetPhoto(photo_rescue));
 
   Serial1.write(GetPhoto(photo_ball));
   Serial1.write(getCheckBall());

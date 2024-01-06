@@ -13,10 +13,10 @@ import time
 
 touch_sensor=[False,False,False,False]  # 右、左、レスキュー用右、左
 line_photo=[False,False,False] #ライントレース用のフォトリフレクタ、中央、右、左　白ならFalse、黒ならTrue
-line_photo_threshoulds=[230,250,250] #フォトリフレクタの黒か白かの閾値
+line_photo_threshoulds=[200,200,200] #フォトリフレクタの黒か白かの閾値
 rescue_photo = False #レスキューキット用のフォトリフレクタ　反応すればTrue
 photo_rescue_threshould=170
-ultrasonic = 0  # 赤外線センサー右 cm
+ultrasonic = 0  # 超音波センサー右 cm
 photo_ball = False #アームの中に物体があるか検知　あればTrue
 check_ball = False #アームの導電性を確認、電気が流れればTrue
 
@@ -28,6 +28,7 @@ def get_sensors():
     """
     ard.clear()
 
+
     date = ard.read(1)
 
     while date != b'\xff':
@@ -38,27 +39,32 @@ def get_sensors():
 
     for i in range(3):
         date_int=get_int_date()
+        if i==0: print(date_int)
         if date_int>100:
             line_photo[i]=( date_int > line_photo_threshoulds[i] )
+
     # # フォトリフレクタ・レスキュー
 
     date_int=get_int_date()
 
-
+    
     rescue_photo=( date_int < photo_rescue_threshould )
 
-    # # 超音波センサ
+
+    # 超音波センサ
     #ultrasonic = get_int_date()  # 超音波センサー右の通信データ
+    
 
     # ボール検知フォトトランジスタ
     photo_ball_threshould=240 #ボール検知の閾値
     date_int=get_int_date()
 
+
     photo_ball=(date_int>photo_ball_threshould)
 
     date_int=get_int_date()  # ボール判別導電性センサ
     check_ball=(date_int==1)
-    
+
     #date10 = ard.read(1)  # I2Cカラーセンサ
     ard.clear()
 
@@ -68,13 +74,14 @@ def get_int_date():
         int: arduinoから受け取ったデータ
     """
     return int.from_bytes(ard.read(1),"big")
+
 #アーム開閉
 def OpenArms(num):
     """アームを開閉します。
         Arduinoに指示を送ります。
         開閉の時間分待つ分までここに含まれます。
     Args:
-        num (int): 指示コード 1:両方開く 2:両方閉じる 3: 右だけ開く 4:左だけ閉める 5:後ろ右だけ開ける 6:後ろ左だけ開ける 7:後ろ閉める
+        num (int): 指示コード 1:両方開く 2:両方閉じる 3: 右だけ開く 4:左だけ閉める 5:後ろ右だけ開ける 6:後ろ左だけ開ける 7:後ろ閉める 8:ライントレースモード 9:レスキューモード
     """    
     ard.write(num.to_bytes(1, "big"))
     time.sleep(0.4)

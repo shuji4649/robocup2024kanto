@@ -69,70 +69,64 @@ class LineTrace():
 
 
         speed_r=1
-        if abs(self.dif0)>=245:
-            ev3.speaker.beep()
+        
         #トの字/直角
-        # if abs(self.dif0)>=240:
+
+        if ard_uart.line_photo[1] != ard_uart.line_photo[2]:
             
-        #     self.a_motor.stop()
-        #     self.d_motor.stop()
-        #     ev3.speaker.beep(523)
-        #     f=1 if self.dif0>0 else -1 #左へ曲がるなら1
-        #     # f=1 if ard_uart.line_photo[2] else -1 #左へ曲がるなら1
-        #     self.robot.straight(30)
-        #     #self.robot.turn(-15*f)
-        #     self.robot.stop()
+            self.a_motor.stop()
+            self.d_motor.stop()
+            ev3.speaker.beep(523)
+            # f=1 if self.dif0>0 else -1 #左へ曲がるなら1
+            f=1 if ard_uart.line_photo[2] else -1 #左へ曲がるなら1
+            self.robot.straight(20)
+            #self.robot.turn(-15*f)
+            self.robot.stop()
+            ard_uart.get_sensors()
+            check_turn_speed=300
+            if ard_uart.line_photo[0]==False: #直角です
+                ev3.speaker.beep(440)
 
-        #     for i in range(3):
-        #         ard_uart.get_sensors()
-        #     check_turn_speed=300
-        #     if ard_uart.line_photo[0]==False: #直角です
-        #         ev3.speaker.beep(440)
+                #位置調整。下がって黒を認識してから前に出る
+                self.robot.drive(-50,0)
+                while ard_uart.line_photo[0]==False:
+                    ard_uart.get_sensors()
+                    hoge=1
+                self.robot.stop()
+                self.robot.straight(15)
+                self.robot.stop()
 
-        #         #位置調整。下がって黒を認識してから前に出る
-        #         self.robot.drive(-50,0)
-        #         while ard_uart.line_photo[0]==False:
-        #             ard_uart.get_sensors()
-        #             hoge=1
-        #         self.robot.stop()
-        #         self.robot.straight(15)
-        #         self.robot.stop()
-
-        #         #黒を認識するまで待った後ちょっと前に出て角度調整
-        #         self.a_motor.run(-check_turn_speed*f)
-        #         self.d_motor.run(check_turn_speed*f)
-        #         while  (f==1 and sum(self.cs_l.rgb())>70) or (f==-1 and sum(self.cs_r.rgb())>70):
-        #             hoge=1
-        #         self.a_motor.stop()
-        #         self.d_motor.stop()
-        #         self.robot.turn(0*f)
-        #         self.robot.straight(0)
-        #         self.robot.stop()
+                #黒を認識するまで待った後ちょっと前に出て角度調整
+                self.a_motor.run(-check_turn_speed*f)
+                self.d_motor.run(check_turn_speed*f)
+                while  (f==1 and sum(self.cs_l.rgb())>70) or (f==-1 and sum(self.cs_r.rgb())>70):
+                    hoge=1
+                self.a_motor.stop()
+                self.d_motor.stop()
                 
-        #         #黒線を挟むまで
+                #黒線を挟むまで
 
-        #         self.a_motor.run(-check_turn_speed*f)
-        #         self.d_motor.run(check_turn_speed*f)
-        #         while  (f==1 and sum(self.cs_l.rgb())>70) or (f==-1 and sum(self.cs_r.rgb())>70):
-        #             hoge=1
-        #         while (abs(sum(self.cs_l.rgb())-sum(self.cs_r.rgb()))>20 ):
-        #             hoge=1
-        #     self.a_motor.stop()
-        #     self.d_motor.stop()
+                self.a_motor.run(-check_turn_speed*f)
+                self.d_motor.run(check_turn_speed*f)
+                while  (f==1 and sum(self.cs_l.rgb())>70) or (f==-1 and sum(self.cs_r.rgb())>70):
+                    hoge=1
+                while (abs(sum(self.cs_l.rgb())-sum(self.cs_r.rgb()))>20 ):
+                    hoge=1
+            self.a_motor.stop()
+            self.d_motor.stop()
                     
-        #     notgreen_thread=threading.Thread(target=not_see_green_set)
-        #     notgreen_thread.start()
-        #     return
+            notgreen_thread=threading.Thread(target=not_see_green_set)
+            notgreen_thread.start()
+            return
 
         # if sum(self.cs_l.rgb())<40 and sum(self.cs_r.rgb())<40:
         # #直線をまたいだ後は緑検知しない
-        # if ard_uart.line_photo[1] and ard_uart.line_photo[2]:
-        #     notgreen_thread=threading.Thread(target=not_see_green_set)
-        #     notgreen_thread.start()
+        if ard_uart.line_photo[1] and ard_uart.line_photo[2]:
+            notgreen_thread=threading.Thread(target=not_see_green_set)
+            notgreen_thread.start()
 
 
-        print(self.dif0)
-        if abs(self.dif0)<=10:
+        if abs(self.dif0)<=15:
             self.straightcount_s+=1
             if self.straightcount_s>2:
                 P = self.dif0*P_GAIN_fast
@@ -158,7 +152,7 @@ class LineTrace():
             speed=SPEED_slow
             #print("nyo")
 
-        debug_speeds=0
+        debug_speeds=3
         if debug_speeds==1:
             P = self.dif0*P_GAIN_fast
             I = self.difSum*I_GAIN_fast
@@ -174,8 +168,9 @@ class LineTrace():
             I = self.difSum*I_GAIN_slow
             D = (self.dif0-self.dif1)*D_GAIN_slow
             speed=SPEED_slow
-
+        
         k=min(max(P+I+D,-speed*3),speed*3)
+
         self.a_motor.run(speed-k)
         self.d_motor.run(speed+k)
 

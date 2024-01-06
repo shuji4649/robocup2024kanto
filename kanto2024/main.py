@@ -6,6 +6,7 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 from pybricks.iodevices import UARTDevice
 import time
+import sys
 
 from linetrace import LineTrace
 
@@ -23,7 +24,7 @@ a_motor= Motor(Port.B)
 d_motor = Motor(Port.D)  # 移動用モーター
 rescue_arm=Motor(Port.C)
 cs_r,cs_l = ColorSensor(Port.S2),ColorSensor(Port.S3)  # 左のColorSensor
-cs_side=1
+cs_side=ColorSensor(Port.S4)
 a_motor.reset_angle(0)
 d_motor.reset_angle(0)
 
@@ -35,26 +36,33 @@ ev3_music=music()
 
 
 def main():
-    ard_uart.OpenArms(1)
-    #rescue.DownRescueArm()
+
+
+    ev3.light.on(Color.ORANGE)
     ev3.speaker.beep()
     #レスキューのアームを上にあげる
     rescue.UpRescueArm()
     robot.stop()
-    #rescue.rescue_search()
+    #rescue.DownRescueArm()
+    #rescue.rescuekit_drop()
 
     while True:
+        
         ard_uart.get_sensors()
 
-        # if ObjectEscape(): continue 
+
+        if ObjectEscape(): continue 
             
         line.pid_run()
+        
 
 
         #rescue.PickUpRescueKit()
         
         if line.checkRed():
             robot.stop()
+            a_motor.stop()
+            d_motor.stop()
             break
         line.checkGreen() 
 
@@ -284,8 +292,20 @@ def DownRescueArm():
 
 
 
+def exitCheck():
+    ev3=EV3Brick()
+    while True:
+        if ev3.buttons.pressed():
+            robot.stop()
+            a_motor.stop()
+            d_motor.stop()
+            ev3.speaker.beep()
+            sys.exit()
 
 
 if __name__=="__main__":
-    print("nahanaha")
-    main()
+    print("hogee")
+    main_thread=threading.Thread(target=main)
+    main_thread.daemon=True
+    main_thread.start()
+    exitCheck()
