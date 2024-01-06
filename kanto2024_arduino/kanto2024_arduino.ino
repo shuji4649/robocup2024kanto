@@ -127,14 +127,14 @@ void setup() {
 
 void forDebug() {
 
-  Serial.println(GetTouch());
+  // Serial.println(GetTouch());
 
-  // for (int i = 0; i < 3; i++) {
-  //   Serial.print(i);
-  //   Serial.print(":");
-  //   Serial.println(GetPhoto(line_photo[i]));
-  // }
-  // delay(1000);
+  for (int i = 0; i < 3; i++) {
+    Serial.print(i);
+    Serial.print(":");
+    Serial.println(GetPhoto(line_photo[i]));
+  }
+  delay(1000);
   // Serial.println(GetPhoto(photo_rescue));
 
   // Serial.println(GetUltrasonic());
@@ -204,7 +204,7 @@ void forModoki(){
   //Serial1.write(GetColor());
 }
 void loop() {
-  forDebug();
+  //forDebug();
   // アーム開閉信号受信
   if (Serial1.available()) {
     int key = Serial1.read();

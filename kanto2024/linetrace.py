@@ -197,12 +197,21 @@ class LineTrace():
         if not_see_green: return
         whichGo=0 #1右2左 3引き返す
         if isGreen(self.cs_r.rgb()) or isGreen(self.cs_l.rgb()):
-            time.sleep(0.2)
+
             self.a_motor.stop()
             self.d_motor.stop()
-            time.sleep(3)
-            if isGreen(self.cs_r.rgb()): whichGo+=1
-            if isGreen(self.cs_l.rgb()): whichGo+=2
+            self.robot.straight(-15)
+            self.robot.reset()
+            foundRgreen=False
+            foundLgreen=False
+            self.robot.drive(60,0)
+            while self.robot.distance()<=20:
+                if isGreen(self.cs_r.rgb()): foundRgreen=True
+                if isGreen(self.cs_l.rgb()): foundLgreen=True
+            self.robot.stop()
+            if foundRgreen: whichGo+=1
+            if foundLgreen: whichGo+=2
+            print(whichGo)
         else:
             return
         print("green!!!")
@@ -226,8 +235,10 @@ class LineTrace():
             ev3=EV3Brick()
             ev3.speaker.beep()
             if whichGo==3:#Uターン
+                self.robot.drive(-60,60)
+                time.sleep(0.3)
                 self.robot.straight(-50)
-                self.robot.turn(140)
+                self.robot.turn(130)
                 self.robot.stop()
                 self.a_motor.run(-turnspeed)
                 self.d_motor.run(turnspeed)

@@ -44,12 +44,12 @@ def main():
     rescue.UpRescueArm()
     robot.stop()
     # rescue.DownRescueArm()
-    rescue.rescuekit_drop()
+    #rescue.rescuekit_drop()
 
     while True:
 
         ard_uart.get_sensors()
-
+        
 
         if ObjectEscape(): continue 
             
