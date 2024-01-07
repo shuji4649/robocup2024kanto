@@ -45,6 +45,7 @@ class LineTrace():
         self.ev3=EV3Brick()
         self.straightcount=0
         self.straightcount_s=0
+        self.now_on_gap=0
 
 
     def pid_run(self):
@@ -52,13 +53,6 @@ class LineTrace():
         """        
         global timer_done
         ev3=EV3Brick()
-        # if isGreen(self.cs_r.rgb()):
-        #     ev3.speaker.beep()
-        #     self.a_motor.stop()
-        #     self.d_motor.stop()
-        
-        #     print("Green")
-        #     exit()
 
         self.dif1=self.dif0
         self.dif0 = sum(self.cs_r.rgb()) - sum(self.cs_l.rgb())*1.05  # 0.78 は補正値 
@@ -73,6 +67,15 @@ class LineTrace():
         #トの字/直角
 
         if ard_uart.line_photo[1] != ard_uart.line_photo[2]:
+            # if now_on_gap>10:
+            #     if ard_uart.line_photo[1]:
+            #         self.robot.turn(-15)
+            #         self.robot.stop()
+            #     if ard_uart.line_photo[2]:
+            #         self.robot.turn(15)
+            #         self.robot.stop()
+            #     now_on_gap=0
+            #     return
             
             self.a_motor.stop()
             self.d_motor.stop()
@@ -112,6 +115,8 @@ class LineTrace():
                     hoge=1
                 while (abs(sum(self.cs_l.rgb())-sum(self.cs_r.rgb()))>20 ):
                     hoge=1
+            else:
+                print("ubababa")
             self.a_motor.stop()
             self.d_motor.stop()
                     
@@ -126,7 +131,7 @@ class LineTrace():
             notgreen_thread.start()
 
 
-        if abs(self.dif0)<=15:
+        if abs(self.dif0)<=30:
             self.straightcount_s+=1
             if self.straightcount_s>2:
                 P = self.dif0*P_GAIN_fast
@@ -138,7 +143,8 @@ class LineTrace():
                 I = self.difSum*I_GAIN 
                 D = (self.dif0-self.dif1)*D_GAIN 
                 speed=SPEED
-        elif abs(self.dif0)<=40:
+
+        elif abs(self.dif0)<=100:
             self.straightcount_s=0
             P = self.dif0*P_GAIN
             I = self.difSum*I_GAIN 
@@ -151,7 +157,13 @@ class LineTrace():
             D = (self.dif0-self.dif1)*D_GAIN_slow
             speed=SPEED_slow
             #print("nyo")
-
+        if ard_uart.line_photo[0]==False and sum(self.cs_r.rgb())>200 and sum(self.cs_l.rgb())>200:
+            P=0
+            I=0
+            D=0
+            self.now_on_gap+=1
+        else:
+            self.now_on_gap=0
         debug_speeds=0
         if debug_speeds==1:
             P = self.dif0*P_GAIN_fast
@@ -170,7 +182,7 @@ class LineTrace():
             speed=SPEED_slow
         
         k=min(max(P+I+D,-speed*3),speed*3)
-
+        
         self.a_motor.run(speed-k)
         self.d_motor.run(speed+k)
 
@@ -316,5 +328,6 @@ not_see_green=False
 def not_see_green_set():
     global not_see_green
     not_see_green=True
-    time.sleep(2)
+    time.sleep(1)
     not_see_green=False
+

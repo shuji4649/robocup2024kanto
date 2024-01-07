@@ -20,7 +20,7 @@ import threading
 ev3 = EV3Brick()
 # モータ・センサ設定
 
-a_motor= Motor(Port.B)
+a_motor= Motor(Port.A)
 d_motor = Motor(Port.D)  # 移動用モーター
 rescue_arm=Motor(Port.C)
 cs_r,cs_l = ColorSensor(Port.S2),ColorSensor(Port.S3)  # 左のColorSensor
@@ -43,22 +43,33 @@ def main():
     #レスキューのアームを上にあげる
     rescue.UpRescueArm()
     robot.stop()
-    # rescue.DownRescueArm()
+    #rescue.DownRescueArm()
     #rescue.rescuekit_drop()
 
     while True:
 
         ard_uart.get_sensors()
-        
 
+        
+        rescue.PickUpRescueKit()
+        
+    
         if ObjectEscape(): continue 
+        if ard_uart.isEnterRescue_byPoto:
+            ev3.speaker.beep(261)
+            ev3.speaker.beep(329)
+            ev3.speaker.beep(391)
+            robot.stop()
+            a_motor.stop()
+            d_motor.stop()
+            rescue.rescuekit_drop()
+            ard_uart.isEnterRescue_byPoto=False
+            continue
             
         line.pid_run()
         
 
 
-        rescue.PickUpRescueKit()
-        
         if line.checkRed():
             robot.stop()
             a_motor.stop()
@@ -66,15 +77,8 @@ def main():
             break
         line.checkGreen() 
 
-        # if rescue.isEnterRescue():
-        #     ev3.speaker.beep(261)
-        #     ev3.speaker.beep(329)
-        #     ev3.speaker.beep(391)
-        #     robot.stop()
-        #     a_motor.stop()
-        #     d_motor.stop()
-        #     rescue.rescuekit_drop()
-        # continue
+
+
 
 
 
@@ -101,7 +105,7 @@ def isEnterRescue():
     Returns:
         bool: 銀色テープを検知したならばTrueを返します。
     """    
-    if(cs_r.rgb()[0]>=92 and cs_r.rgb()[1]>=92 and cs_r.rgb()[2]>=92):
+    if(cs_r.rgb()[0]>=96 and cs_r.rgb()[1]>=96 and cs_r.rgb()[2]>=96):
         return True
     else:
         return False
@@ -237,13 +241,15 @@ def ObjectEscape():
             robot.stop()
             ev3.speaker.beep(523)
             time.sleep(0.2)
-            robot.straight(40) # 後ろへ
+            robot.straight(-40) # 後ろへ
 
             robot.stop()
-            robot.turn(-40*isRturn)
+            robot.turn(-20*isRturn)
             robot.drive(100,0)
             while sum(cs_l.rgb())>100 and sum(cs_r.rgb())>100:
                 hoge=1
+            robot.stop()
+            robot.straight(25)
             robot.stop()
             a_motor.run(200*isRturn)
             d_motor.run(-200*isRturn)

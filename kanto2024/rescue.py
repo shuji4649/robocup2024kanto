@@ -41,9 +41,12 @@ class rescue:
         """レスキューキットを落とすための周回
         """
         rescue.LiveBall=True
-        ard_uart.get_sensors()
+        rescue.robot.straight(200)
 
-        #rescue.robot.turn(-90)
+        
+        #Aコートには必要
+        rescue.robot.turn(-90)
+        ard_uart.get_sensors()
         rescue.DownRescueArm()
         rescue.robot.drive(120,0)
         while True:
@@ -66,22 +69,22 @@ class rescue:
                 else:
                     rescue.robot.straight(-30)
                     rescue.robot.stop()
-                    rescue.UpArmWithPickUpBalls
+                    rescue.UpArmWithPickUpBalls()
                     rescue.TurnHinanjo()
 
-            if ard_uart.ultrasonic>=20 and rescue.LiveBall==False:
-                rescue.robot.turn(-90)
-                rescue.robot.reset()
-                rescue.robot.drive(100,0)
-                while True:
-                    if rescue.isExitRescue():
-                        rescue.straight(10)
-                        return
-                    if rescue.isEnterRescue or rescue.robot.distance()>=100 :
-                        rescue.robot.straight(-150)
-                        rescue.robot.turn(90)
-                        rescue.robot.drive(120,0)
-                        break
+            # if ard_uart.ultrasonic>=20 and rescue.LiveBall==False:
+            #     rescue.robot.turn(-90)
+            #     rescue.robot.reset()
+            #     rescue.robot.drive(100,0)
+            #     while True:
+            #         if rescue.isExitRescue():
+            #             rescue.straight(10)
+            #             return
+            #         if rescue.isEnterRescue or rescue.robot.distance()>=100 :
+            #             rescue.robot.straight(-150)
+            #             rescue.robot.turn(90)
+            #             rescue.robot.drive(120,0)
+            #             break
                         
             if rescue.PickUpRescueBalls(): rescue.robot.drive(120,0)
 
@@ -143,10 +146,13 @@ class rescue:
     @classmethod
     def PickUpRescueKit(cls):
         if ard_uart.rescue_photo:
+            rescue.robot.straight(10)
             ard_uart.get_sensors()
-            rescue.robot.straight(-130)
+            if ard_uart.touch_sensor[0] or ard_uart.touch_sensor[1]:
+                return
+            rescue.robot.straight(-160)
             rescue.DownRescueArm()
-            rescue.robot.straight(30)
+            rescue.robot.straight(50)
             ard_uart.OpenArms(2)
             time.sleep(0.4)
 
@@ -163,7 +169,8 @@ class rescue:
             ard_uart.OpenArms(2)
             rescue.robot.stop()
             time.sleep(0.5)
-
+            rescue.robot.straight(-20)
+            rescue.stop()
             #アームを上げる
             rescue.UpRescueArm()
 
@@ -173,6 +180,7 @@ class rescue:
                 ard_uart.OpenArms(3)
             else:
                 ard_uart.OpenArms(4)
+
             time.sleep(0.5)
 
             #アーム両方開放
@@ -219,13 +227,13 @@ class rescue:
         rescue.d_motor.run(250-200*isRightTurn)
         time.sleep(1.5)
         #ちょっと進む
-        rescue.robot.straight(100)
+        rescue.robot.straight(200)
 
 
         #落とす向きになる
         rescue.robot.turn(-90*isRightTurn)
-        rescue.robot.straight(-100)
-        rescue.robot.straight(30)
+        rescue.robot.straight(-80)
+        rescue.robot.straight(20)
 
         #色を確認・適切なものを落とす！！
         print(rescue._hinajoColor())
@@ -235,6 +243,9 @@ class rescue:
         elif rescue._hinajoColor()==2:
             ard_uart.OpenArms(6)
             rescue.DeadBall=False
+        # ard_uart.OpenArms(5)
+        # time.sleep(2)
+        # ard_uart.OpenArms(6)
         time.sleep(2)
 
         #閉める
@@ -243,13 +254,16 @@ class rescue:
         #平行に戻る
         rescue.robot.straight(30)
         rescue.robot.turn(90*isRightTurn)
+
+
+        rescue.robot.straight(100)
         rescue.robot.stop()
 
         #次のマスへGO
         rescue.a_motor.run(250+150*isRightTurn)
         rescue.d_motor.run(250-150*isRightTurn)
         time.sleep(1.5)
-        rescue.robot.straight(50)
+        # rescue.robot.straight(50)
 
 
 
@@ -260,7 +274,7 @@ class rescue:
         Returns:
             bool: 銀色テープを検知したならばTrueを返します。
         """    
-        return (sum(rescue.cs_r.rgb())>=280)
+        return (sum(rescue.cs_r.rgb())>=295)
     @classmethod
     def isExitRescue(cls):
         """レスキューゾーン出口の黒色テープを検知します。
